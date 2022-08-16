@@ -1,0 +1,1218 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+      "version": "1.0.0",
+      "title": "Plainx middleware api documentation",
+      "description": "API documentation for plainx middleware",
+      "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT"
+      }
+    },
+    "host": "https://plainx-midddleware-engine.azurewebsites.net",
+    "basePath": "/",
+    "components": {
+        "securitySchemes": {
+          "jwt": {
+            "type": "http",
+            "scheme": "bearer",
+            "name": "x-access-token",
+            "in": "header",
+            "bearerFormat": "JWT"
+          }
+        }
+      },
+      "security": [{
+        "jwt": []
+      }],
+    "tags": [
+      {
+        "name": "Users",
+        "description": "API for users in the system"
+      },
+      {
+        "name": "Projects",
+        "description": "API for projects"
+      },
+      {
+        "name": "Models",
+        "description": "API for models"
+      },
+      {
+        "name": "Notifications",
+        "description": "API for notifications"
+      }, 
+      {
+        "name": "Azure Queue",
+        "description": "APIs for python script triggering via Azure Queue"
+      }
+    ],
+    "schemes": [
+      "https"
+    ],
+    "consumes": [
+      "application/json"
+    ],
+    "produces": [
+      "application/json"
+    ],
+    "paths": {
+      "/user": {
+        "post": {
+          "tags": [
+            "Users"
+          ],
+          "parameters": [
+            {
+              "name": "user",
+              "in": "body",
+              "description": "User that we want to create",
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/User"
+                }
+              }
+            }
+          },
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "New user is created",
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            },
+            "401": {
+                "description": "Email address must be unique",
+                "schema": {
+                    "$ref": "#/definitions/User"
+                }
+            }
+          }
+        },
+        "get": {
+          "tags": [
+            "Users"
+          ],
+          "summary": "Get all users in system",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/Users"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            }
+          }
+        }
+      },
+      "/auth/login": {
+        "post": {
+          "tags": [
+            "Users"
+          ],
+          "description": "Login to the application",
+          "parameters": [
+            {
+              "name": "Login",
+              "in": "body",
+              "description": "Login to the application",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { 
+                    "description": "Username",
+                    "type": "string"
+                  },
+                  "password": {
+                    "description": "password",
+                    "type": "string"
+                  }
+                },
+                "required": ["username", "password"] 
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": { 
+                      "description": "Username",
+                      "type": "string"
+                    },
+                    "password": {
+                      "description": "password",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["username", "password"] 
+                }
+              }
+            }
+          },
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "Login is successfull"
+            },
+            "400": {
+              "description": "Please enter valid username and password"
+            },
+            "404": {
+              "description": "No user found."
+            }
+          }
+        }
+      },
+      "/auth/logout": {
+        "get":{
+          "tags": [
+            "Users"
+          ],
+          "summary": "Logout the current user",
+          "responses": {
+            "200": {
+              "description": "Logout is successfull "
+            }
+          }
+        }
+      },
+      "/user/forgot_password":{
+        "post": {
+          "tags": [
+            "Users"
+          ],
+          "summary": "Send Password reset link",
+          "parameters": [
+            {
+              "name": "Password",
+              "in": "body",
+              "description": "Login Id that require password change",
+              "schema": {
+                  "required": [
+                    "email",
+                    "resetPasswordEndPoint"
+                  ],
+                  "properties": {
+                      "email": { "type": "string", "uniqueItems": true },
+                      "resetPasswordEndPoint":{ "type": "string" }
+                  }
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "email",
+                    "resetPasswordEndPoint"
+                  ],
+                  "properties": {
+                      "email": { "type": "string", "uniqueItems": true },
+                      "resetPasswordEndPoint":{ "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "Password reset link has been sent to your email account",
+              "schema": {
+                "required": [
+                  "email",
+                  "resetPasswordEndPoint"
+                ],
+                "properties": {
+                    "email": { "type": "string", "uniqueItems": true },
+                    "resetPasswordEndPoint":{ "type": "string" }
+                }
+              }
+            },
+            "500": {
+                "description": "An error occured with the system, Please try after sometime",
+                "schema": {
+                  "required": [
+                    "email",
+                    "resetPasswordEndPoint"
+                  ],
+                  "properties": {
+                      "email": { "type": "string", "uniqueItems": true },
+                      "resetPasswordEndPoint":{ "type": "string" }
+                  }
+                }
+            },
+            "400": {
+                "description": "User with given email doesn't exist",
+                "schema": {
+                  "required": [
+                    "email",
+                    "resetPasswordEndPoint"
+                  ],
+                  "properties": {
+                      "email": { "type": "string", "uniqueItems": true },
+                      "resetPasswordEndPoint":{ "type": "string" }
+                  }
+                }
+            }
+          }
+        }
+      },
+      "/user/update_password/{userId}/{token}":{
+        "post": {
+          "tags": [
+            "Users"
+          ],
+          "summary": "Updates Password",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "required": true,
+              "description": "ID of user that we want to Update Password",
+              "type": "string"
+            },
+            {
+              "name": "token",
+              "in": "path",
+              "required": true,
+              "description": "token",
+              "type": "string"
+            },
+            {
+              "name": "password",
+              "in": "body",
+              "required": true,
+              "description": "password",
+              "schema": {
+                "required": [
+                  "password"
+                ],
+                "properties": {
+                    "password": { "type": "string", "uniqueItems": true }
+                }
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "password"
+                  ],
+                  "properties": {
+                      "password": { "type": "string", "uniqueItems": true }
+                  }
+                }
+              }
+            }
+          },
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "password reset sucessfully.",
+              "schema": {
+                "required": [
+                  "password"
+                ],
+                "properties": {
+                    "password": { "type": "string", "uniqueItems": true }
+                }
+              }
+            },
+            "500": {
+                "description": "An error occured with the system, Please try after sometime",
+                "schema": {
+                  "required": [
+                    "password"
+                  ],
+                  "properties": {
+                      "password": { "type": "string", "uniqueItems": true }
+                  }
+                }
+            },
+            "400": {
+                "description": "Please enter valid password OR Invalid link or expired",
+                "schema": {
+                  "required": [
+                    "password"
+                  ],
+                  "properties": {
+                      "password": { "type": "string", "uniqueItems": true }
+                  }
+                }
+            }
+          }
+        }
+      },
+      "/user/verify_token":{
+        "post": {
+          "tags": [
+            "Users"
+          ],
+          "summary": "Verify the JWT Token",
+          "parameters": [
+            {
+              "name": "Verify Token",
+              "in": "body",
+              "description": "Verify the JWT Token",
+              "schema": {
+                "required": [
+                  "userId"
+                ],
+                "properties": {
+                    "userId": { "type": "string", "uniqueItems": true }
+                }
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "userId"
+                  ],
+                  "properties": {
+                      "userId": { "type": "string", "uniqueItems": true }
+                  }
+                }
+              }
+            }
+          },
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "Token Verified",
+              "schema": {
+                "required": [
+                  "userId"
+                ],
+                "properties": {
+                    "userId": { "type": "string", "uniqueItems": true }
+                }
+              }
+            },
+            "500": {
+                "description": "There was a problem finding the user.",
+                "schema": {
+                  "required": [
+                    "userId"
+                  ],
+                  "properties": {
+                      "userId": { "type": "string", "uniqueItems": true }
+                  }
+                }
+            },
+            "404": {
+                "description": "No user found.",
+                "schema": {
+                  "required": [
+                    "userId"
+                  ],
+                  "properties": {
+                      "userId": { "type": "string", "uniqueItems": true }
+                  }
+                }
+            }
+          }
+        }
+      },
+      "/user/{userId}": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "description": "ID of user that we want to find",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Users"
+          ],
+          "summary": "Get user with given ID",
+          "responses": {
+            "200": {
+              "description": "User is found",
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            }
+          }
+        },
+        "delete": {
+          "summary": "Delete user with given ID",
+          "tags": [
+            "Users"
+          ],
+          "responses": {
+            "200": {
+              "description": "User is deleted",
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          }
+        },
+        "put": {
+          "summary": "Update user with give ID",
+          "tags": [
+            "Users"
+          ],
+          "parameters": [
+            {
+              "name": "user",
+              "in": "body",
+              "description": "User with new values of properties",
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User is updated",
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          }
+        }
+      },
+      "/project": {
+        "post": {
+            "tags": [
+              "Projects"
+            ],
+            "parameters": [
+              {
+                "name": "project",
+                "in": "body",
+                "description": "projects that we want to create",
+                "schema": {
+                  "$ref": "#/definitions/Project"
+                }
+              }
+            ],
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/Project"
+                  }
+                }
+              }
+            },
+            "produces": [
+              "application/json"
+            ],
+            "responses": {
+              "200": {
+                "description": "New Project is created",
+                "schema": {
+                  "$ref": "#/definitions/Project"
+                }
+              },
+              "401": {
+                  "description": "Email address must be unique",
+                  "schema": {
+                    "$ref": "#/definitions/Project"
+                  }
+              }
+            }
+        }
+      },
+      "/project/all/{userId}": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "description": "ID of project that we want to find",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Projects"
+          ],
+          "summary": "Get all projects in system",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/Projects"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            }
+          }
+        }
+      },
+      "/project/{projectId}": {
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of project that we want to find",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Projects"
+          ],
+          "summary": "Get project with given ID",
+          "responses": {
+            "200": {
+              "description": "Project is found",
+              "schema": {
+                "$ref": "#/definitions/Project"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            }
+          }
+        }
+      },
+      "/project/model_comparison/{projectId}": {
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of project that we want to find details",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Projects"
+          ],
+          "summary": "Get model comparison details of project with given projectId",
+          "responses": {
+            "200": {
+              "description": "Model comparison details found successfully",
+              "schema": {
+                "$ref": "#/definitions/Project"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            },
+            "404": {
+              "description": "No project found with given id"
+            },
+            "500":
+            {
+              "description": "There was a problem finding the data. Please try again after sometime"
+            }
+          }
+        }
+      },
+      "/project/data_summary/{projectId}": {
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of project that we want to find details",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Projects"
+          ],
+          "summary": "Get model summary details of project with given projectId",
+          "responses": {
+            "200": {
+              "description": "Model details found",
+              "schema": {
+                "$ref": "#/definitions/Project"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            },
+            "404": {
+              "description": "No project found with given id"
+            },
+            "500":
+            {
+              "description": "There was a problem finding the data. Please try again after sometime"
+            }
+          }
+        }
+      },
+      "/project/bias_results/{projectId}": {
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of project that we want to find details",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Projects"
+          ],
+          "summary": "Get bias results of project with given projectId",
+          "responses": {
+            "200": {
+              "description": "Bias results found sucessfully",
+              "schema": {
+                "$ref": "#/definitions/Project"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            },
+            "404": {
+              "description": "No project found with given id"
+            },
+            "500":
+            {
+              "description": "There was a problem finding the data. Please try again after sometime"
+            }
+          }
+        }
+      },
+      "/project/bias_features/{projectId}": {
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of project that we want to find details",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Projects"
+          ],
+          "summary": "Get bias features of project with given projectId",
+          "responses": {
+            "200": {
+              "description": "Bias features found sucessfully",
+              "schema": {
+                "$ref": "#/definitions/Project"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            },
+            "404": {
+              "description": "No project found with given id"
+            },
+            "500":
+            {
+              "description": "There was a problem finding the data. Please try again after sometime"
+            }
+          }
+        }
+      },
+      "/project/eda_data/{projectId}": {
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of project that we want to find details",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Projects"
+          ],
+          "summary": "Get eda data of project with given projectId",
+          "responses": {
+            "200": {
+              "description": "EDA data found sucessfully",
+              "schema": {
+                "$ref": "#/definitions/Project"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            },
+            "404": {
+              "description": "No project found with given id"
+            },
+            "500":
+            {
+              "description": "There was a problem finding the data. Please try again after sometime"
+            }
+          }
+        }
+      },
+      "/project/business_tree/{projectId}": {
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of project that we need to fetch",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Projects"
+          ],
+          "summary": "Get binary tree with given ID",
+          "responses": {
+            "200": {
+              "description": "Binary Tree data found succesfully",
+              "schema": {
+                "$ref": "#/definitions/Project"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            },
+            "404":{
+              "description": "No project found with given id"
+            },
+            "500":{
+              "description":"There was a problem fetching data."
+            }
+          }
+        },
+        "put": {
+          "summary": "Update binary tree with given ID",
+          "tags": [
+            "Projects"
+          ],
+          "parameters": [
+            {
+              "name": "Project",
+              "in": "body",
+              "description": "Binary Tree with new values of properties",
+              "schema": {
+                "$ref": "#/definitions/BusinessTree"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Binary Tree is updated",
+              "schema": {
+                "$ref": "#/definitions/BusinessTree"
+              }
+            },
+            "404": {
+              "description": "No project found with given id"
+            },
+            "500":
+            {
+              "description": "There was a problem updating the Binary tree data"
+            }
+          }
+        }
+      },
+      "/model/{modelId}": {
+        "parameters": [
+          {
+            "name": "modelId",
+            "in": "path",
+            "required": true,
+            "description": "ID of model that we want to find",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Models"
+          ],
+          "summary": "Get model with given ID",
+          "responses": {
+            "200": {
+              "description": "Model is found",
+              "schema": {
+                "$ref": "#/definitions/Model"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            }
+          }
+        }
+      },
+      "/model/local_explainer/{projectId}":{
+        "parameters":[
+         {
+           "name":"projectId",
+           "in": "path",
+           "required": true,
+           "description": "ID of project that we want to find details",
+           "type": "string"
+         },
+         {
+            "in": "query",
+            "name": "claimNumber",
+            "schema":
+            {
+            "type": "integer",
+            "description": "The Claim Number for which we want to find details"
+            }
+         }
+        ],
+        "get": {
+         "tags": [
+           "Models"
+         ],
+         "summary": "Get Local Explainer details of project with given ID",
+           "responses": {
+             "200": {
+               "description": "Local Explainer details found successfully",
+               "schema": {
+                 "$ref": "#/definitions/Project"
+               }
+             },
+             "403": {
+               "description": "Failed to authenticate token."
+             },
+             "404":{
+               "description": "No project found with given id"
+             },
+             "500":{
+               "description":"There was a problem fetching data.Please try again after sometime"
+             }
+           }
+         }
+       },
+       "/model/local_explainer/records/{projectId}":{
+         "parameters":[
+          {
+            "name":"projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of project that we want to find details",
+            "type": "string"
+          }
+         ],
+         "get": {
+          "tags": [
+            "Models"
+          ],
+          "summary": "Get Local Explainer Records details of project with given ID",
+            "responses": {
+              "200": {
+                "description": "Local Explainer  Records details found successfully",
+                "schema": {
+                  "$ref": "#/definitions/Project"
+                }
+              },
+              "403": {
+                "description": "Failed to authenticate token."
+              },
+              "404":{
+                "description": "No project found with given id"
+              },
+              "500":{
+                "description":"There was a problem fetching data.Please try again after sometime"
+              }
+            }
+          }
+        },
+      "/notification/all/{userId}": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "description": "ID of user whose notifications we want to get",
+            "type": "string"
+          }
+        ],
+        "get": {
+          "tags": [
+            "Notifications"
+          ],
+          "summary": "Get all notifications for user",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/Notifications"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            }
+          }
+        }
+      },
+      "/azure_message_queue": {
+        "parameters": [
+          {
+            "userId": "userId",
+            "in": "body",
+            "required": true,
+            "description": "Parameters are not decided yet.",
+            "type": "string"
+          }
+        ],
+        "post": {
+          "tags": [
+            "Azure Queue" 
+          ],
+          "summary": "Trigger python script and store prediction in MongoDB",
+          "responses": {
+            "200": {
+              "description": "Message has been sent to azure queue"
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            }
+          }
+        }
+      },
+      "/notification/{userId}": {
+        "post": {
+          "tags": [
+            "Notifications"
+          ],
+          "description": "Create a notification for user",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "required": true,
+              "description": "ID of user who we want to send notification to",
+              "type": "string"
+            },
+            {
+              "name": "Notification",
+              "in": "body",
+              "description": "Notification that we want to create",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": { 
+                    "description": "Message",
+                    "type": "string"
+                  },
+                  "type": {
+                    "description": "Type",
+                    "type": "string"
+                  }
+                },
+                "required": ["message", "type"] 
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { 
+                      "description": "Message",
+                      "type": "string"
+                    },
+                    "type": {
+                      "description": "Type",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["message", "type"] 
+                }
+              }
+            }
+          },
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "The details of the newly created notification."
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            }
+          }
+        }
+      },
+      "/notification/{notificationId}": {
+        "parameters": [
+          {
+            "name": "notificationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of notification that we want to update",
+            "type": "string"
+          }
+        ],
+        "put": {
+          "tags": [
+            "Notifications"
+          ],
+          "summary": "Update notification with given notification ID",
+          "responses": {
+            "200": {
+              "description": "Notification was updated to isRead = true.",
+              "schema": {
+                "$ref": "#/definitions/Notification"
+              }
+            },
+            "403": {
+              "description": "Failed to authenticate token."
+            }
+          }
+        }
+      }
+    },
+    "definitions": {
+      "User": {
+        "required": [
+          "email"
+        ],
+        "properties": {
+            "firstName": { "type": "string" },
+            "lastName": { "type": "string"},
+            "email": { "type": "string", "uniqueItems": true },
+            "password": { "type": "string"},
+            "company": { "type": "string"},
+            "designation": { "type": "string" }
+        }
+      },
+      "Users": {
+        "type": "array",
+        "$ref": "#/definitions/User"
+      },
+      "Project": {
+        "properties": {
+          "userId": { "type": "string"},
+          "projectName": { "type": "string" },
+          "projectStage": { "type": "string" },
+          "industry" : { "type": "string" },
+          "useCase": { "type": "string" },
+          "model": {"type": "object", "$ref": "#/definitions/Model"},
+          "datasetFile": { "type": "string" },
+          "datasetSize": { "type": "string" },
+          "datasetName": { "type": "string" }
+        },
+        "required": [
+            "userId"
+        ]
+      },
+      "Model": {
+        "properties": {
+          "modelName": { "type": "string"},
+          "modelType": { "type": "string"},
+          "modelFile": { "type": "string"},
+          "dataToPredict": { "type": "string"}
+        }
+      },
+      "Projects": {
+          "type": "array",
+          "$ref": "#/definitions/Project"
+      },
+      "Notifications":{
+        "properties": {
+          "userId": { "type": "string"},
+          "notificationId": { "type": "string"},
+          "type": { "type": "string"},
+          "message": { "type": "string"},
+          "dateCreated": { "type": "string"},
+          "isRead": { "type": "boolean"}
+        },
+        "required": [
+            "userId"
+        ]
+        },
+        "TreeGraphDataAttributes":{
+          "properties": {
+           " name":{"type":"string"},
+            "isSelected":{"type":"boolean"},
+           " filterKey":{"type":"string"},
+           " filterCondition":{"type":"string"},
+            "filterCriteria":{"type":"string"}
+          }
+        },
+        "NodeDisplayData":{
+          "properties":{
+            "bias":{"type":"string"},
+            "probability":{"type":"number"}
+          },
+          "required": [
+            "projectId"
+        ]
+        },
+      "BinaryNode":{
+        "properties":{
+          "name":{"type":"string"},
+         "attributes":{
+          "type":"object",
+          "$ref":"#/definitions/TreeGraphDataAttributes"
+        },
+         "nodeDisplayData":{
+          "type":"object",
+          "$ref":"#/definitions/NodeDisplayData"
+        }
+        }
+      },
+      "Children":{
+        "type":"object",
+        "$ref":"#/definitions/BinaryNode"
+      },
+      
+      "BusinessTree":{
+        "properties":{
+          "name":{"type":"string"},
+         "attributes":{
+          "type":"object",
+          "$ref":"#/definitions/TreeGraphDataAttributes"
+        },
+         "nodeDisplayData":{
+          "type":"object",
+          "$ref":"#/definitions/NodeDisplayData"
+        },
+         "children":{
+          "type":"array",
+          "items":{"$ref":"#/definitions/Children"}
+        }
+        }
+      }
+    }
+  }
